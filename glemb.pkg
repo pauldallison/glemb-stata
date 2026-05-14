@@ -1,0 +1,19 @@
+v 3
+d glemb: General location EMB imputation for Stata
+d
+d glemb adds a user-defined method for Stata's mi impute command.
+d It imputes mixed categorical and continuous data using the general
+d location model with EMB.
+d
+d Distribution-Date: 20260513
+d Version: 0.1.2
+d Requires: Stata 17 or newer
+d
+f lglemb.mata
+f mi_impute_cmd_glemb.ado
+f mi_impute_cmd_glemb_parse.ado
+f mi_impute_cmd_glemb_cleanup.ado
+f mi_impute_glemb.sthlp
+f glemb.ado
+f glemb.sthlp
+f README.md
