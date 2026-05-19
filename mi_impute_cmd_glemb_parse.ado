@@ -1,4 +1,4 @@
-*! version 0.1.2 13may2026
+*! version 0.1.3 19may2026
 program define mi_impute_cmd_glemb_parse
     version 17.0
 
@@ -13,6 +13,31 @@ program define mi_impute_cmd_glemb_parse
     unab ivars : `ivars'
     if `"`xvars'"' != "" {
         unab xvars : `xvars'
+    }
+
+    tempvar glemb_parse_touse
+    quietly gen byte `glemb_parse_touse' = 1 `if'
+    quietly replace `glemb_parse_touse' = 0 if missing(`glemb_parse_touse')
+    local softmissing = 0
+    local extvars
+    foreach v of local ivars {
+        quietly count if `glemb_parse_touse' & `v' == .
+        local softmissing = `softmissing' + r(N)
+        quietly count if `glemb_parse_touse' & `v' > .
+        if (r(N) > 0) {
+            local extvars `extvars' `v'
+        }
+    }
+    local extvars : list uniq extvars
+    if "`extvars'" != "" {
+        di as txt "note: extended missing values (.a-.z) in imputation variables will not be imputed: `extvars'"
+    }
+    if (`softmissing' == 0) {
+        di as err "no ordinary missing values found in imputation variables"
+        if "`extvars'" != "" {
+            di as err "extended missing values (.a-.z) are left unchanged by mi impute glemb"
+        }
+        exit 498
     }
 
     u_mi_impute_user_setup `if', ivars(`ivars') xvars(`xvars') ///

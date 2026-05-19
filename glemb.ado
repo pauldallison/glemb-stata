@@ -1,4 +1,4 @@
-*! version 0.1.2 13may2026
+*! version 0.1.3 19may2026
 program define glemb, rclass
     version 17.0
 
@@ -96,14 +96,30 @@ program define glemb, rclass
     if (`n' == 0) {
         error 2000
     }
+    local nmodelvars : word count `workvars'
+    if (`n' < 5 * `nmodelvars') {
+        di as txt "note: imputation sample is small relative to the number of model variables; results may be unstable"
+    }
 
     local anymissing = 0
+    local extvars
     foreach v of local workvars {
-        quietly count if `touse' & missing(`v')
+        quietly count if `touse' & `v' == .
         if (r(N) > 0) local anymissing = 1
+        quietly count if `touse' & `v' > .
+        if (r(N) > 0) {
+            local extvars `extvars' `v'
+        }
+    }
+    local extvars : list uniq extvars
+    if "`extvars'" != "" {
+        di as txt "note: extended missing values (.a-.z) will not be imputed: `extvars'"
     }
     if (!`anymissing') {
-        di as err "no missing values found in imputation-model variables"
+        di as err "no ordinary missing values found in imputation-model variables"
+        if "`extvars'" != "" {
+            di as err "extended missing values (.a-.z) are left unchanged by glemb"
+        }
         exit 459
     }
 
@@ -316,7 +332,7 @@ program define glemb, rclass
                 local code = 0
                 foreach lev of local levels`j' {
                     local ++code
-                    quietly replace `v' = `lev' if `touse' & missing(`v') & round(`outw') == `code'
+                    quietly replace `v' = `lev' if `touse' & `v' == . & round(`outw') == `code'
                 }
             }
 
@@ -325,7 +341,7 @@ program define glemb, rclass
             foreach v of local zvars {
                 local ++k
                 local outz : word `=`p' + `k'' of `outvars'
-                quietly replace `v' = `outz' if `touse' & missing(`v')
+                quietly replace `v' = `outz' if `touse' & `v' == .
             }
 
             quietly sort `order'

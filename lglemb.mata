@@ -596,6 +596,19 @@ real rowvector glemb_pack_sigma(real matrix sigma, real matrix psi)
     return(out)
 }
 
+real matrix glemb_cov_ridge(real matrix sigma)
+{
+    real scalar q, scale
+
+    q = rows(sigma)
+    if (q == 0) return(sigma)
+
+    scale = trace(sigma) / q
+    if (scale <= 0 | scale >= .) scale = 1
+
+    return((sigma + sigma') / 2 + I(q) * (1e-10 * scale))
+}
+
 real scalar glemb_log_mvn(real rowvector y, real rowvector mu, real matrix sigma)
 {
     real scalar d, sign, logdet
@@ -605,6 +618,7 @@ real scalar glemb_log_mvn(real rowvector y, real rowvector mu, real matrix sigma
     if (d == 0) return(0)
 
     diff = y - mu
+    sigma = glemb_cov_ridge(sigma)
     logdet = ln(det(sigma))
     if (logdet >= .) return(-.)
 
@@ -929,6 +943,7 @@ real matrix glemb_impute(struct glemb_prelim_s scalar s, struct glemb_params sca
                     condvar = sigma[misidx, misidx]
                 }
 
+                condvar = glemb_cov_ridge(condvar)
                 if (length(misidx) == 1) {
                     noise = rnormal(1, 1, 0, sqrt(max((condvar[1,1], 0))))
                 }
@@ -978,7 +993,7 @@ struct glemb_params scalar glemb_mstepcm(
         }
     }
 
-    sigma_full = (sigma_mat - beta' * w * beta) / n
+    sigma_full = glemb_cov_ridge((sigma_mat - beta' * w * beta) / n)
     out.sigma = J(1, s.npsi, .)
     for (j = 1; j <= q; j++) {
         for (k = j; k <= q; k++) {

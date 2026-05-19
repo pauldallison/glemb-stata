@@ -42,6 +42,8 @@ Variables with missing values that should be imputed by `glemb` must be on the l
 
 Categorical variables with missing values should be listed in `noms()`. Complete categorical predictors can optionally be included in `noms()`, but it is not essential. Model variables not listed in `noms()` are treated as continuous.
 
+Extended missing values (`.a`-`.z`) in imputation variables are left unchanged and are not imputed. `glemb` prints a note when such values are present. Convert extended missing values to ordinary missing (`.`) before imputation if you want them imputed.
+
 ## Main options
 
 - `noms(varlist)`: categorical variables in the imputation model.
@@ -55,6 +57,7 @@ Categorical variables with missing values should be listed in `noms()`. Complete
 - Avoid putting many high-cardinality categorical variables in `noms()`. `glemb` forms a multiway categorical table and will stop if the implied table is too large.
 - `catprior(0)` requires every possible categorical cell to be observed in the imputation sample.
 - Continuous variables must have at least one observed value and nonzero observed variance.
+- Very small samples relative to the number of model variables may produce unstable imputations; `glemb` prints a note in this situation.
 - Imputed continuous values are draws from the fitted multivariate normal model and can fall outside the observed range.
 - The standalone `glemb` command is retained as a development and diagnostic interface. The recommended user-facing command is `mi impute glemb`.
 

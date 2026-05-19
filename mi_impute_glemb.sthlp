@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.1.2 13may2026}{...}
+{* *! version 0.1.3 19may2026}{...}
 {vieweralsosee "[MI] mi impute" "help mi_impute"}{...}
 {vieweralsosee "glemb" "help glemb"}{...}
 {title:Title}
@@ -51,6 +51,12 @@ must be placed on the left side.
 Variables after the equals sign are complete predictors.  They may be
 included in the imputation model, but they are not imputed by this call.
 Right-hand-side predictors must be complete in the imputation sample.
+
+{pstd}
+Extended missing values ({cmd:.a}-{cmd:.z}) in imputation variables are left
+unchanged and are not imputed.  {cmd:mi impute glemb} prints a note when such
+values are present.  If all missing values in the imputation variables are
+extended missing values, no imputations are added.
 
 {pstd}
 Categorical variables with missing values should be listed in {cmd:noms()}.
@@ -115,6 +121,11 @@ Consider combining sparse categories or reducing the number of variables in
 {phang}
 Continuous variables must have at least one observed value and must have
 nonzero observed variance.
+
+{phang}
+Extended missing values ({cmd:.a}-{cmd:.z}) are treated as hard missing values:
+they are left unchanged and are not imputed.  Convert them to ordinary missing
+values ({cmd:.}) before imputation if you want {cmd:glemb} to impute them.
 
 {phang}
 Imputed continuous values are draws from the fitted multivariate normal model

@@ -1,4 +1,4 @@
-*! version 0.1.2 13may2026
+*! version 0.1.3 19may2026
 program define mi_impute_cmd_glemb, rclass
     version 17.0
 
@@ -77,20 +77,16 @@ program define mi_impute_cmd_glemb, rclass
         di as err "glemb requires at least one continuous variable not listed in noms()"
         exit 198
     }
+    local nmodelvars : word count `modelvars'
+    if (`n' < 5 * `nmodelvars') {
+        di as txt "note: imputation sample is small relative to the number of model variables; results may be unstable"
+    }
 
     foreach v of local xvars {
         quietly count if `touse' & missing(`v')
         if (r(N) > 0) {
             di as err "complete predictor `v' contains missing values in the imputation sample"
-            exit 459
-        }
-    }
-
-    foreach v of local modelvars {
-        quietly count if `touse' & `v' > .
-        if (r(N) > 0) {
-            di as err "extended missing values are not yet supported by mi impute glemb: `v'"
-            exit 459
+            exit 498
         }
     }
 
@@ -106,11 +102,11 @@ program define mi_impute_cmd_glemb, rclass
         local k : word count `levels`j''
         if (`k' < 2) {
             di as err "categorical variable `v' has fewer than 2 observed categories"
-            exit 459
+            exit 498
         }
         if (`k' > 20) {
             di as err "categorical variable `v' has `k' observed categories; maximum is 20"
-            exit 459
+            exit 498
         }
         local ncells = `ncells' * `k'
     }
@@ -118,14 +114,14 @@ program define mi_impute_cmd_glemb, rclass
         di as err "categorical variables define " as res %12.0fc `ncells' ///
             as err " cells; maximum allowed is " as res %12.0fc `maxcells'
         di as err "reduce the number of variables in noms() or combine sparse categories"
-        exit 459
+        exit 498
     }
     if (`n' * `ncells' > `maxcompat') {
         di as err "imputation sample and categorical cells imply " ///
             as res %12.0fc (`n' * `ncells') as err " row-cell checks"
         di as err "maximum allowed is " as res %12.0fc `maxcompat'
         di as err "reduce the number of variables in noms() or combine sparse categories"
-        exit 459
+        exit 498
     }
     if (`catprior' == 0) {
         local nomisscond `touse'
@@ -141,7 +137,7 @@ program define mi_impute_cmd_glemb, rclass
             di as err "observed cells = " as res %12.0fc `n_obscells' ///
                 as err "; possible cells = " as res %12.0fc `ncells'
             di as err "specify catprior()>0 or combine sparse categories"
-            exit 459
+            exit 498
         }
     }
 
@@ -150,11 +146,11 @@ program define mi_impute_cmd_glemb, rclass
         if (r(N) == 0) {
             di as err "continuous variable `v' has no observed values"
             di as err "remove it or supply observed values before imputing"
-            exit 459
+            exit 498
         }
         else if (r(min) == r(max)) {
             di as err "continuous variable `v' has no variance"
-            exit 459
+            exit 498
         }
     }
 
@@ -223,7 +219,7 @@ program define mi_impute_cmd_glemb, rclass
             local code = 0
             foreach lev of local levels`j' {
                 local ++code
-                quietly replace `v' = `lev' if `missvar' == 1 & round(`outw') == `code'
+                quietly replace `v' = `lev' if `missvar' == 1 & `v' == . & round(`outw') == `code'
             }
         }
     }
@@ -239,7 +235,7 @@ program define mi_impute_cmd_glemb, rclass
             }
         }
         if "`missvar'" != "" {
-            quietly replace `v' = `outz' if `missvar' == 1
+            quietly replace `v' = `outz' if `missvar' == 1 & `v' == .
         }
     }
 

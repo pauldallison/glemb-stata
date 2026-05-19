@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.1.2 13may2026}{...}
+{* *! version 0.1.3 19may2026}{...}
 {vieweralsosee "[MI] mi impute glemb" "help mi_impute_glemb"}{...}
 {vieweralsosee "[MI] mi impute" "help mi_impute"}{...}
 {title:Title}
